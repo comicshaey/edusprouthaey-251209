@@ -1,4 +1,4 @@
-/* 251118화 수정 */
+/* 251120목 */
 
 *{box-sizing:border-box}
 
@@ -9,19 +9,18 @@ html,body{
   color:#000;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Apple SD Gothic Neo,'Malgun Gothic',sans-serif;
   line-height:1.5;
-  word-break:keep-all; /* 한글 줄바꿈 자연스럽게 */
+  word-break:keep-all;
 }
 
 a{text-decoration:none;color:inherit}
 
-/* 페이지 기본 레이아웃 컨테이너 (계산기 등) */
+/* 메인 레이아웃 */
 .shell{
   max-width:1100px;
   margin:0 auto;
   padding:20px;
 }
 
-/* 메인 영역 공통 레이아웃 (메인/개발자노트/학습일지 등) */
 main{
   max-width:880px;
   margin:0 auto;
@@ -34,7 +33,7 @@ main{
 .sub{margin:.25rem 0 0;color:#000;font-size:14px}
 .site-footer{padding:24px 0;color:#000;border-top:1px solid #eee}
 
-/* 카드 박스 (계산기 카드 등) */
+/* 카드박스 */
 .card{
   background:#fff;
   border:1px solid #e6e6f0;
@@ -46,19 +45,20 @@ main{
 
 h2{margin:0 0 12px;font-size:18px}
 
-/* Grid Layout */
+/* Grid */
 .grid{display:grid;gap:12px}
+.grid > *{min-width:0;} /* 🟢 내부 확장 방지 */
+
 .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
 
-/* 좁은 화면 레이아웃 */
 @media (max-width:900px){
   .grid.two, .grid.three{
     grid-template-columns:1fr;
   }
 }
 
-/* 폼 */
+/* 폼공통 */
 label{
   display:flex;
   flex-direction:column;
@@ -69,49 +69,26 @@ label{
 
 input,select,button,textarea{font:inherit}
 
-input[type="text"],
-input[type="number"],
-input[type="time"],
-input[type="date"],
-select,
-textarea{
+input[type="text"],input[type="number"],input[type="time"],
+input[type="date"],select,textarea{
   padding:10px 12px;
   border:1px solid #d9d9e3;
   border-radius:12px;
   background:#fff;
   outline:none;
+  min-width:0; /* 🟢 모바일 숫자 잘림 방지 */
 }
 
 textarea{min-height:100px}
 input:disabled{background:#f6f7fb;color:#000}
 
-/* 작은 글씨는 살짝 연하게 */
 small{
   color:#666;
   font-weight:400;
   font-size:0.85em;
 }
 
-/* 한 줄에 묶어서 쓰는 폼 행 */
-.form-row{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  margin-bottom:8px;
-}
-
-/* 설명문 공통 */
-.hint{
-  margin:4px 0 0;
-  font-size:12px;
-  color:#666;
-}
-
-.row{display:flex;align-items:center}
-.between{justify-content:space-between}
-.gap{gap:8px}
-
-/* 버튼 기본 스타일 */
+/* 버튼 공통 */
 .btn{
   display:block;
   width:100%;
@@ -119,7 +96,6 @@ small{
   margin:10px auto 0;
   padding:12px 20px;
   border-radius:10px;
-  text-decoration:none;
   font-weight:600;
   background:#000;
   color:#fff;
@@ -128,33 +104,13 @@ small{
   transition:0.2s;
   text-align:center;
 }
+.btn:hover{background:#222;transform:translateY(-2px)}
 
-.btn:hover{
-  background:#222;
-  transform:translateY(-2px);
-}
-
-/* 버튼 간격 */
-.btn + .btn{
-  margin-left:0;
-  margin-top:10px;
-}
-
-/* 넓은 화면(데스크톱)에서 가로 정렬 */
 @media (min-width:900px){
-  .btn{
-    display:inline-block;
-    width:auto;
-    max-width:none;
-    margin-top:0;
-  }
-  .btn + .btn{
-    margin-left:10px;
-    margin-top:0;
-  }
+  .btn{display:inline-block;width:auto;max-width:none;margin-top:0}
+  .btn + .btn{margin-left:10px;margin-top:0}
 }
 
-/* 모든 버튼 검정색 통일 */
 .btn, .btn-home, footer a.btn{
   background:#000 !important;
   color:#fff !important;
@@ -162,36 +118,42 @@ small{
 }
 .btn:hover{ filter:brightness(1.2); }
 
-/* 제목 스타일 */
-h1 {
-  font-size: clamp(1.5rem, 4vw, 28px);
-  margin: 0 0 12px;
-  text-align: center;
-}
-
-/* 본문 기본 단락 + muted 텍스트 */
-p{
-  line-height:1.65;
-  margin:10px 0;
-  color:#333;
-}
-
-.muted{
-  color:#666;
+/* 연한 버튼 */
+.btn-lightgrey{
+  display:inline-block;
+  padding:8px 14px;
   font-size:0.9rem;
+  background:#f2f2f2;
+  color:#333;
+  border:1px solid #ddd;
+  border-radius:6px;
+  cursor:pointer;
+}
+.btn-lightgrey:hover{background:#e6e6e6}
+
+/* 제목 */
+h1{
+  font-size:clamp(1.5rem,4vw,28px);
+  margin:0 0 12px;
+  text-align:center;
 }
 
-/* 테이블 */
+p{line-height:1.65;margin:10px 0;color:#333}
+.muted{color:#666;font-size:0.9rem}
+
+/* 🌟 테이블 최종 안정화 */
 .table-wrap{
-  overflow:auto;
+  overflow-x:auto;
+  width:100%;
+  margin-top:6px;
+}
+
+.table-wrap table{
+  border-collapse:collapse;
+  min-width:800px;   /* 🟢 덮어쓰는 자동폭 대신 고정 폭 */
+  width:100%;
   border:1px solid #ececf3;
   border-radius:12px;
-}
-
-table{
-  border-collapse:collapse;
-  min-width:980px;
-  width:100%;
 }
 
 th,td{
@@ -202,188 +164,49 @@ th,td{
   vertical-align:middle;
 }
 
-thead th{background:#fafafb;font-weight:700}
+thead th{
+  background:#fafafb;
+  font-weight:700;
+  font-size:15px; /* 🟢 가독성 향상 */
+}
+
 tfoot td{background:#fafafb;font-weight:700}
+
+td:last-child{
+  width:1%;
+  white-space:nowrap;
+  padding-right:6px; 
+}
+
 .numeric{text-align:right}
 .right{text-align:right}
 .center{text-align:center}
 
-.note{margin-top:8px;color:#000}
+/* 결과 */
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:12px}
+.result-item{border-radius:12px;border:1px solid #ececf5;padding:10px 12px;background:#fafafa}
+.result-item-wide{grid-column:1 / -1;background:#000;color:#fff;border-color:#000}
+.result-value{margin-top:4px;font-size:16px;font-weight:600}
+.result-total{margin-top:4px;font-size:20px;font-weight:700}
 
-.callout{
-  margin:24px 0;
-  padding:16px 18px;
-  background:#f7fbff;
-  border:1px solid #e4f0ff;
-  border-radius:14px;
-}
+.section{border:1px solid #e5e5e5;border-radius:12px;padding:16px 18px;margin:18px 0}
+hr{border:none;border-top:1px solid #ddd;margin:28px 0}
 
-.cardlink{
-  display:block;
-  padding:18px;
-  border:1px solid #e6e6f0;
-  border-radius:16px;
-  transition:transform .06s ease, box-shadow .06s ease;
-}
-.cardlink:hover{
-  transform:translateY(-2px);
-  box-shadow:0 4px 14px rgba(0,0,0,.06);
-}
-
-.kicker{
-  font-size:12px;
-  letter-spacing:.06em;
-  color:#000;
-  text-transform:uppercase;
-  margin-bottom:6px;
-}
-
-.footer-note{
-  margin-top:6px;
-  white-space:pre-line;
-}
-
-/* 모바일 전용 수정사항 */
-@media (max-width:600px){
-  .shell{padding:16px 14px;}
-  .card{padding:16px;}
-  footer{text-align:center;font-size:0.9rem;padding:0 10px;}
-}
-
-/* 251113목 방학중 인건비 추가 - 계산기 공통 컴포넌트 */
-
-/* 결과 박스 그리드 */
-.result-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
-  gap:10px;
-  margin-top:12px;
-}
-
-.result-item{
-  border-radius:12px;
-  border:1px solid #ececf5;
-  padding:10px 12px;
-  background:#fafafa;
-}
-
-.result-item-wide{
-  grid-column:1 / -1;
-  background:#000;
-  color:#fff;
-  border-color:#000;
-}
-
-.result-label{
-  font-size:13px;
-  color:#666;
-}
-
-.result-label.strong{
-  font-weight:700;
-  font-size:14px;
-}
-
-.result-value{
-  margin-top:4px;
-  font-size:16px;
-  font-weight:600;
-}
-
-.result-total{
-  margin-top:4px;
-  font-size:20px;
-  font-weight:700;
-}
-
-.result-sub{
-  margin-top:3px;
-  font-size:11px;
-  color:#666;
-  line-height:1.4;
-}
-
-/* 메모/규칙 리스트 */
-.rule-list{
-  margin:0;
-  padding-left:18px;
-  font-size:13px;
-  color:#444;
-  line-height:1.6;
-}
-
-.rule-list li + li{
-  margin-top:4px;
-}
-
-/* note 확장 */
-.note.small{
-  font-size:11px;
-}
-
-/* 세그먼트형 입력 레이아웃 */
-.segment-header {
-  display: grid;
-  grid-template-columns: 1.4fr 1.4fr 1.2fr 2fr;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.segment-row {
-  display: grid;
-  grid-template-columns: 1.4fr 1.4fr 1.2fr 2fr;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.segment-row input[type="text"],
-.segment-row input[type="number"],
-.segment-row select {
-  font-size: 13px;
-}
-
-/* 섹션 박스: 메인/개발자노트/학습일지 공통 카드 스타일 */
-.section{
-  border:1px solid #e5e5e5;
-  border-radius:12px;
-  padding:16px 18px;
-  margin:18px 0;
-}
-
-/* 구분선 */
-hr{
-  border:none;
-  border-top:1px solid #ddd;
-  margin:28px 0;
-}
-
-/* footer 태그 기본 (사이트 공통) */
 footer{
   margin:40px 0 20px;
   color:#333;
   font-size:0.9rem;
+  text-align:center;
 }
 
-/* 라디오 버튼 수평 정렬 보정 */
-input[type="radio"] {
-  vertical-align: middle;
-  margin-top: -2px; /* -1 ~ -3px 사이에서 조정 가능 */
+input[type="radio"]{
+  vertical-align:middle;
+  margin-top:-2px;
 }
 
-/* 연한 회색 버튼 */
-.btn-lightgrey {
-  display: inline-block;
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  background: #f2f2f2; /* 은은한 연회색 */
-  color: #333;         /* 텍스트 가독성 확보 */
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.btn-lightgrey:hover {
-  background: #e6e6e6; /* 살짝 진해지는 톤 */
+/* 모바일 튜닝 */
+@media (max-width:600px){
+  .shell{padding:16px 14px;}
+  .card{padding:16px;}
+  footer{font-size:0.9rem;padding:0 10px;}
 }
