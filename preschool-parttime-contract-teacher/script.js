@@ -1,7 +1,7 @@
-// 유치원 시간제근무 기간제교원 인건비 계산기 스크립트
-// 아, 오늘 진짜 개짜증난다…
+// 251120 유치원 시간제근무 기간제교원 인건비 계산기 스크립트
+//어휴 씨 짜증나
 
-// 공통 헬퍼
+// ----- 공통 헬퍼 -----
 function $(id) {
   return document.getElementById(id);
 }
@@ -38,13 +38,13 @@ function formatWon(v) {
   return v.toLocaleString("ko-KR") + "원";
 }
 
-// 월 → 근무시간 환산 기준 (주당 20/40시간 기준)
-const WEEK_HOURS_SEM = 20;  // 학기중 주당 소정근로시간
-const WEEK_HOURS_VAC = 40;  // 방학중 주당 소정근로시간
+// ----- 근무시간·비례 상수 -----
+const WEEK_HOURS_SEM = 20;   // 학기중 주당 소정근로시간
+const WEEK_HOURS_VAC = 40;   // 방학중 주당 소정근로시간
 const WEEK_TO_MONTH = 4.345; // 평균 주수
 
-// 2025년 기준 가족수당·식비·교직수당·교원연구비 상수 (정상근무 기준)
-const FAMILY_SPOUSE = 40000; // 배우자 가족수당 (정상근무 기준, 2025년)
+// 가족수당·식비·교직수당 상수 (정상근무 기준)
+const FAMILY_SPOUSE = 40000; // 배우자 가족수당
 
 // 고정 정액급식비/교직수당 (시간제용: 8시간·4시간 기준)
 const MEAL_8H = 140000;
@@ -52,7 +52,7 @@ const MEAL_4H = 70000;
 const TEACH_ALLOW_8H = 250000;
 const TEACH_ALLOW_4H = 125000;
 
-// 경력연수 입력값 → 년수(대략)
+// ----- 경력연수·수당 산정 -----
 function getCareerYearsFloat() {
   const yEl = $("careerYears");
   const mEl = $("careerMonths");
@@ -64,14 +64,13 @@ function getCareerYearsFloat() {
   return y + m / 12 + d / 365;
 }
 
-// 2025년 기준 교원연구비 (정상근무 기준 월액)
-// 유·초·중 교원: 5년 이상 60,000원 / 5년 미만 75,000원 (중앙정부 기준) :contentReference[oaicite:5]{index=5}
+// 교원연구비 (정상근무 기준 월액) – 필요 시 금액 조정
 function calcTeacherResearchFull(careerYears) {
   if (!careerYears || careerYears < 0) return 0;
   return careerYears >= 5 ? 60000 : 75000;
 }
 
-// 가족수당(정상근무 기준 월액, 2025년 자녀수당 인상 반영) :contentReference[oaicite:6]{index=6}
+// 가족수당(정상근무 기준 월액)
 function calcFamilyFullMonthly() {
   const spouseInput = document.querySelector('input[name="spouseFlag"]:checked');
   const hasSpouse = spouseInput ? spouseInput.value === "Y" : false;
@@ -86,25 +85,17 @@ function calcFamilyFullMonthly() {
     total += FAMILY_SPOUSE;
   }
 
-  // 자녀수에 따른 총액(정상근무 기준)
+  // 자녀수당 총액
   if (childCount >= 1) {
-    if (childCount === 1) {
-      total += 50000;
-    } else if (childCount === 2) {
-      total += 80000;
-    } else {
-      total += 120000;
-    }
+    if (childCount === 1) total += 50000;
+    else if (childCount === 2) total += 80000;
+    else total += 120000;
   }
 
   return total;
 }
 
-// 월별 수당 입력행에 자동 수당값 반영
-// - 정액급식비: 학기중 70,000 / 방학중 140,000
-// - 교직수당: 학기중 125,000 / 방학중 250,000
-// - 교원연구비: 근무연수 기준 5년 미만/이상, 시간제 비례(학기중 1/2, 방학중 1배)
-// - 가족수당: 2025년 기준 배우자·자녀 수당 총액을 시간제 비례
+// 월별 수당 입력행 자동 반영
 function applyAutoAllowances() {
   const rows = document.querySelectorAll(".allowance-row");
   if (!rows || !rows.length) return;
@@ -149,21 +140,18 @@ function applyAutoAllowances() {
         vacInput.value = "";
       }
     }
-    // 정근수당 가산금 등은 수동 입력 유지
+    // 정근수당 가산금 등은 수동 입력
   });
 }
 
-// 시간제 시간당 임금 계산에 쓸 기본급·수당 정리
+// 기본급·수당 → 시간당 단가 계산
 function buildBasePay() {
   const base8 = toNumber($("basePay8").value);
-  if (!base8) {
-    return null;
-  }
+  if (!base8) return null;
 
-  const base4Sem = base8 / 2;   // 학기중: 4시간
-  const base8Vac = base8;       // 방학중: 8시간
+  const base4Sem = base8 / 2;
+  const base8Vac = base8;
 
-  // 월별 수당 (학기중·방학중)
   applyAutoAllowances();
 
   let allowSem = 0;
@@ -181,7 +169,6 @@ function buildBasePay() {
   const semMonthTotal = base4Sem + allowSem;
   const vacMonthTotal = base8Vac + allowVac;
 
-  // 학기중/방학중 시간당 임금 (기본급+수당 포함)
   const semMonthHours = WEEK_HOURS_SEM * WEEK_TO_MONTH;
   const vacMonthHours = WEEK_HOURS_VAC * WEEK_TO_MONTH;
 
@@ -199,18 +186,16 @@ function buildBasePay() {
   };
 }
 
-// 계약기간 내 각 날짜의 타입 계산용 (학기중/방학/방학중미운영)
-const DAY_TYPE_SEMESTER = "SEM"; // 학기중 4시간
-const DAY_TYPE_VACATION = "VAC"; // 방학 8시간
-const DAY_TYPE_NOAF = "NOAF";    // 방학 중 방과후 미운영(4시간)
+// ----- 날짜 타입 구분 -----
+const DAY_TYPE_SEMESTER = "SEM";
+const DAY_TYPE_VACATION = "VAC";
+const DAY_TYPE_NOAF = "NOAF";
 
-// 특정 날짜가 주어진 구간 목록 안에 들어가는지
 function inRange(date, ranges) {
   const time = date.getTime();
   return ranges.some((r) => time >= r.start && time <= r.end);
 }
 
-// 방학·미운영 구간 배열 만들기
 function buildRanges(tbodySelector, startClass, endClass) {
   const ranges = [];
   document.querySelectorAll(tbodySelector + " tr").forEach((row) => {
@@ -225,7 +210,7 @@ function buildRanges(tbodySelector, startClass, endClass) {
   return ranges;
 }
 
-// 6. 월별 일수 계산
+// ----- 2단계: 월별 일수 계산 -----
 function buildMonthTable() {
   const startStr = $("contractStart").value;
   const endStr = $("contractEnd").value;
@@ -241,30 +226,21 @@ function buildMonthTable() {
     return;
   }
 
-  // 방학·미운영 구간
   const vacRanges = buildRanges("#vacationBody", "vac-start", "vac-end");
   const noAfRanges = buildRanges("#noAfBody", "noaf-start", "noaf-end");
 
-  // 월별 집계용 맵
   const monthMap = new Map(); // key: yyyy-mm, value: {sem, vac, noaf}
 
   let cur = new Date(start.getTime());
   while (cur <= end) {
     const ym = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, "0")}`;
 
-    if (!monthMap.has(ym)) {
-      monthMap.set(ym, { sem: 0, vac: 0, noaf: 0 });
-    }
+    if (!monthMap.has(ym)) monthMap.set(ym, { sem: 0, vac: 0, noaf: 0 });
     const cell = monthMap.get(ym);
 
     let type = DAY_TYPE_SEMESTER;
-
-    if (inRange(cur, vacRanges)) {
-      type = DAY_TYPE_VACATION;
-    }
-    if (inRange(cur, noAfRanges)) {
-      type = DAY_TYPE_NOAF;
-    }
+    if (inRange(cur, vacRanges)) type = DAY_TYPE_VACATION;
+    if (inRange(cur, noAfRanges)) type = DAY_TYPE_NOAF;
 
     if (type === DAY_TYPE_VACATION) cell.vac += 1;
     else if (type === DAY_TYPE_NOAF) cell.noaf += 1;
@@ -273,7 +249,6 @@ function buildMonthTable() {
     cur.setDate(cur.getDate() + 1);
   }
 
-  // 테이블 렌더링
   let html = `
     <div class="table-wrap">
       <table>
@@ -310,7 +285,7 @@ function buildMonthTable() {
   wrap.innerHTML = html;
 }
 
-// 7/8. 월별 인건비 계산
+// ----- 3단계: 월별 인건비 + 퇴직금 계산 -----
 function calcMonthly() {
   const errEl = $("calcError");
   const resultWrap = $("resultWrap");
@@ -319,21 +294,21 @@ function calcMonthly() {
 
   const baseInfo = buildBasePay();
   if (!baseInfo) {
-    errEl.textContent = "기본급(8시간 기준)을 먼저 입력 또는 호봉 선택으로 설정하세요.";
+    errEl.textContent = "1단계를 먼저 실행해 기본급과 수당을 반영하세요.";
     return;
   }
 
   const monthRows = document.querySelectorAll(".month-row");
   if (!monthRows.length) {
-    errEl.textContent = "먼저 월별 일수를 계산하세요.";
+    errEl.textContent = "2단계로 월별 일수를 먼저 계산하세요.";
     return;
   }
 
-  // 4대보험 비율 (기관부담 기준, 대략값 – 필요시 사용자가 조정 가능)
+  // 4대보험 비율 (기관부담 기준, 근사치)
   const R_PENSION_ORG = 0.045;
   const R_HEALTH_ORG = 0.03545;
-  const R_LTC_ORG = 0.1267 * R_HEALTH_ORG; // 장기요양: 건강보험료의 12.67% 정도 (2025 기준 근사)
-  const R_EMPLOY_ORG = 0.009; // 고용보험 대략 0.9% (사업주 부담 기준, 업종 따라 다름)
+  const R_LTC_ORG = 0.1267 * R_HEALTH_ORG;
+  const R_EMPLOY_ORG = 0.009;
 
   let tbodyHtml = "";
   let totalWageAll = 0;
@@ -388,8 +363,6 @@ function calcMonthly() {
       semDays,
       vacDays,
       noafDays,
-      semHours,
-      vacHours,
       monthHours,
       wageMonth,
       annualMonth,
@@ -460,7 +433,7 @@ function calcMonthly() {
   `;
   resultWrap.appendChild(note);
 
-  // 퇴직금 개략 산정 (계약기간 1년 초과 시)
+  // 퇴직금(계약 1년 초과 시)
   let retireInfo = null;
   const startStr = $("contractStart").value;
   const endStr = $("contractEnd").value;
@@ -473,17 +446,9 @@ function calcMonthly() {
       const avgDaily = (totalWageAll + totalAnnualAll) / totalDays;
       const raw = avgDaily * 30;
       const retirePay = floorTo10(raw);
-      retireInfo = {
-        eligible: true,
-        diffDays: diff,
-        avgDaily,
-        retirePay,
-      };
+      retireInfo = { eligible: true, diffDays: diff, retirePay };
     } else {
-      retireInfo = {
-        eligible: false,
-        diffDays: diff,
-      };
+      retireInfo = { eligible: false, diffDays: diff };
     }
   }
 
@@ -495,7 +460,7 @@ function calcMonthly() {
         <h3 style="margin-top:0;font-size:15px;">퇴직금 개략 산정 (계약기간 1년 초과 시)</h3>
         <p class="hint">
           ·계약기간 달력일수: ${retireInfo.diffDays}일 기준<br/>
-          ·계약기간 전체 임금(연 단위 수당 포함)을 달력일수로 나눈 1일 평균임금 × 30일을 10원 단위로 버림한 값입니다.
+          ·계약기간 전체 임금을 달력일수로 나눈 1일 평균임금 × 30일을 10원 단위로 버림한 값입니다.
         </p>
         <p><b>예상 퇴직금(개략): ${formatWon(retireInfo.retirePay)}</b></p>
       `;
@@ -509,7 +474,7 @@ function calcMonthly() {
   }
 }
 
-// 월별 수당행 추가
+// ----- 행 추가 -----
 function addAllowanceRow() {
   const tbody = $("allowanceBody");
   const tr = document.createElement("tr");
@@ -522,7 +487,6 @@ function addAllowanceRow() {
   tbody.appendChild(tr);
 }
 
-// 연 단위 수당행 추가
 function addAnnualRow() {
   const tbody = $("annualBody");
   const tr = document.createElement("tr");
@@ -534,7 +498,6 @@ function addAnnualRow() {
   tbody.appendChild(tr);
 }
 
-// 방학·미운영 행 추가
 function addVacRow() {
   const tbody = $("vacationBody");
   const tr = document.createElement("tr");
@@ -559,7 +522,7 @@ function addNoAfRow() {
   tbody.appendChild(tr);
 }
 
-// 직종별 구비서류 안내 데이터 (계약제교원 운영지침 요약) :contentReference[oaicite:7]{index=7}
+// ----- 직종별 구비서류 안내 -----
 const DOC_GUIDES = {
   "time-part": [
     "기본증명서(필요 시)",
@@ -616,71 +579,59 @@ function renderDocGuide() {
   box.appendChild(ul);
 }
 
-// 이벤트 바인딩
+// ----- DOMContentLoaded -----
 document.addEventListener("DOMContentLoaded", () => {
   const base8Input = $("basePay8");
   const stepSelect = $("stepSelect");
 
-  // 호봉 선택시 기본급(8시간 기준) 자동 입력 (임의 데이터: 실제 봉급표에 맞게 수정 가능)
-  const STEP_BASE_TABLE = {
-    1: 2050000,
-    2: 2100000,
-    3: 2150000,
-    4: 2200000,
-    5: 2250000,
-    6: 2300000,
-    7: 2350000,
-    8: 2400000,
-    9: 2450000,
-    10: 2500000,
-    11: 2550000,
-    12: 2600000,
-    13: 2650000,
-    14: 2700000,
-    15: 2750000,
-    16: 2800000,
-    17: 2850000,
-    18: 2900000,
-    19: 2950000,
-    20: 3000000,
-    21: 3050000,
-    22: 3100000,
-    23: 3150000,
-    24: 3200000,
-    25: 3250000,
-    26: 3300000,
-    27: 3350000,
-    28: 3400000,
-    29: 3450000,
-    30: 3500000,
-    31: 3550000,
-    32: 3600000,
-    33: 3650000,
-    34: 3700000,
-    35: 3750000,
-    36: 3800000,
-    37: 3850000,
-    38: 3900000,
-    39: 3950000,
-    40: 4000000
-  };
-
+  // 호봉 선택시: TeacherStepCore 이용
   if (stepSelect) {
     stepSelect.addEventListener("change", () => {
       const step = stepSelect.value;
-      if (STEP_BASE_TABLE[step]) {
-        base8Input.value = STEP_BASE_TABLE[step];
+
+      if (typeof TeacherStepCore !== "undefined") {
+        const pay = TeacherStepCore.getMonthlyBasePay8h(step);
+        base8Input.value = pay ? pay : "";
+      } else {
+        base8Input.value = "";
       }
+
       const baseInfo = buildBasePay();
       if (baseInfo) {
         $("basePay4Sem").value = Math.round(baseInfo.base4Sem);
         $("basePay8Vac").value = Math.round(baseInfo.base8Vac);
+      } else {
+        $("basePay4Sem").value = "";
+        $("basePay8Vac").value = "";
       }
     });
   }
 
   if (base8Input) {
     base8Input.addEventListener("input", () => {
+      const baseInfo = buildBasePay();
+      if (baseInfo) {
+        $("basePay4Sem").value = Math.round(baseInfo.base4Sem);
+        $("basePay8Vac").value = Math.round(baseInfo.base8Vac);
+      } else {
+        $("basePay4Sem").value = "";
+        $("basePay8Vac").value = "";
+      }
+    });
+  }
+
+  // 1단계 버튼: 호봉·경력·가족수당 반영
+  const stepBaseBtn = $("stepBaseBtn");
+  if (stepBaseBtn) {
+    stepBaseBtn.addEventListener("click", () => {
+      const stepSel = $("stepSelect");
+      if (stepSel && typeof TeacherStepCore !== "undefined") {
+        const step = stepSel.value;
+        if (step) {
+          const pay = TeacherStepCore.getMonthlyBasePay8h(step);
+          if (pay) base8Input.value = pay;
+        }
+      }
       const baseInfo = buildBasePay();
       if (baseInfo) {
         $("basePay4Sem").value = Math.round(baseInfo.base4Sem);
@@ -710,7 +661,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const calcBtn = $("calcBtn");
   if (calcBtn) calcBtn.addEventListener("click", calcMonthly);
 
-  // 가족사항/경력연수 변경 시 수당 자동 갱신되도록 기본급 재계산 한 번씩 호출
+  // 가족사항/경력연수 변경 시도 1단계 내용 자동 갱신
   ["careerYears", "careerMonths", "careerDays", "childCount"].forEach((id) => {
     const el = $(id);
     if (el) {
@@ -719,6 +670,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (baseInfo) {
           $("basePay4Sem").value = Math.round(baseInfo.base4Sem);
           $("basePay8Vac").value = Math.round(baseInfo.base8Vac);
+        } else {
+          $("basePay4Sem").value = "";
+          $("basePay8Vac").value = "";
         }
       });
     }
@@ -730,11 +684,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (baseInfo) {
         $("basePay4Sem").value = Math.round(baseInfo.base4Sem);
         $("basePay8Vac").value = Math.round(baseInfo.base8Vac);
+      } else {
+        $("basePay4Sem").value = "";
+        $("basePay8Vac").value = "";
       }
     });
   });
 
-  // 구비서류 안내 초기 렌더링
+  // 구비서류 안내
   const docSelect = $("docTypeSelect");
   if (docSelect) {
     docSelect.addEventListener("change", renderDocGuide);
