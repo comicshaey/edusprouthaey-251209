@@ -174,9 +174,6 @@ function buildDaysTable() {
       if (!chk.checked) hours.value = '0';
     });
 
-    // 여기서도 자동 계산 호출 없음
-    // hours.addEventListener('input', () => { ... });
-
     tbody.appendChild(tr);
   }
 
@@ -284,17 +281,12 @@ function buildMonthConfigTable() {
       return inp;
     };
 
-    const inpBase = makeCell('month-basePay');
-    const inpDuty = makeCell('month-dutyAllow');
-    const inpMeal = makeCell('month-mealAllow');
-    const inpLong = makeCell('month-longAllow');
-    const inpBonus = makeCell('month-bonusMonthly');
-    const inpHoliday = makeCell('month-holidayBonus');
-
-    // 여기서도 자동 계산 호출 제거 (사용자가 입력만 하고, 버튼으로 계산)
-    // [inpMonthlyPay, inpDays, inpBase, inpDuty, inpMeal, inpLong, inpBonus, inpHoliday].forEach((el) => {
-    //   el.addEventListener('input', () => recalc());
-    // });
+    makeCell('month-basePay');
+    makeCell('month-dutyAllow');
+    makeCell('month-mealAllow');
+    makeCell('month-longAllow');
+    makeCell('month-bonusMonthly');
+    makeCell('month-holidayBonus');
 
     tbody.appendChild(tr);
   });
@@ -620,6 +612,18 @@ function recalc() {
     grandTotal > 0 ? formatKRW(grandTotal) : '-';
 }
 
+// 직종에 따라 결과 블록 노출 분리
+function updateResultVisibility() {
+  const jobType = jobTypeEl.value;
+  const isCleaner = jobType === 'cleaner';
+
+  const cookBlock = document.getElementById('cookResultBlock');
+  const cleanerBlock = document.getElementById('cleanerResultBlock');
+
+  if (cookBlock) cookBlock.style.display = isCleaner ? 'none' : '';
+  if (cleanerBlock) cleanerBlock.style.display = isCleaner ? '' : 'none';
+}
+
 // ===== 이벤트 바인딩 =====
 
 // 방학 기간 변경 시: 테이블만 재생성 (계산은 버튼으로)
@@ -630,10 +634,10 @@ function recalc() {
   });
 });
 
-// 직종/주휴일 수 변경 시: 역시 계산은 버튼으로
+// 직종/주휴일 수 변경 시: 결과 블록 노출만 조정
 [jobTypeEl, holidayDaysPerWeekEl].forEach((el) => {
   el.addEventListener('change', () => {
-    // 필요시 여기서 결과를 초기화해도 됨
+    updateResultVisibility();
   });
 });
 
@@ -645,6 +649,7 @@ if (calcBtn) {
   });
 }
 
-// 초기 테이블만 세팅
+// 초기 세팅
 buildDaysTable();
 buildMonthConfigTable();
+updateResultVisibility();
