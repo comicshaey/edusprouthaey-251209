@@ -6,20 +6,28 @@
   <title>학년도별 월간 업무 일정 달력</title>
   <link rel="icon" href="/static/favicon.ico" />
   <style>
-    :root{--black:#111;--line:#e5e5e5;--sun:#c8352d;--sat:#1e5fbf}
+    :root{
+      --black:#111;
+      --line:#e5e5e5;
+      --sun:#c8352d;
+      --sat:#1e5fbf;
+    }
 
-    *{box-sizing:border-box}
+    *{
+      box-sizing:border-box;
+    }
+
+    /* 상단 범위 텍스트 숨기기 (예: 2025년 11월 ~ 2026년 2월) */
+    .range-text{
+      display:none !important;
+    }
+
     body{
       margin:0;
       background:#fff;
       color:#111;
       font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
     }
-
- .range-text {
-  display: none !important;
-}
-    
     .wrap{
       max-width:1200px;
       margin:0 auto;
@@ -38,12 +46,17 @@
       font-weight:600;
       margin-bottom:10px;
     }
+
+    /* 설정 영역(입력칸) 묶음 */
+    .controls-wrap{
+      margin-bottom:16px;
+    }
+
     .controls{
       display:flex;
       flex-wrap:wrap;
       gap:8px;
       align-items:center;
-      margin-bottom:16px;
       font-size:.9rem;
     }
     .controls label{
@@ -65,6 +78,24 @@
     }
     .controls button:hover{
       background:#f0f0f0;
+    }
+
+    /* 설정 접기/펼치기 버튼 */
+    .controls-toggle{
+      text-align:right;
+      margin-top:4px;
+    }
+    .toggle-btn{
+      font-size:.8rem;
+      border:none;
+      background:none;
+      color:#555;
+      cursor:pointer;
+      text-decoration:underline;
+      padding:0;
+    }
+    .toggle-btn:hover{
+      color:#111;
     }
 
     .grid{
@@ -183,17 +214,23 @@
       ·일정 데이터는 <code>notes</code> 폴더의 JSON 파일(6개월 단위)에서 불러옵니다.
     </p>
 
-    <div class="controls">
-      <label>
-        시작 연월:
-        <input type="month" id="startYmInput" />
-      </label>
-      <label>
-        개월 수:
-        <input type="number" id="countInput" min="1" max="36" />
-      </label>
-      <button id="applyBtn">적용</button>
-      <span class="range-text" id="rangeText"></span>
+    <!-- 설정 영역(입력칸 + 접기 버튼) -->
+    <div class="controls-wrap">
+      <div class="controls" id="controls">
+        <label>
+          시작 연월:
+          <input type="month" id="startYmInput" />
+        </label>
+        <label>
+          개월 수:
+          <input type="number" id="countInput" min="1" max="36" />
+        </label>
+        <button id="applyBtn">적용</button>
+        <span class="range-text" id="rangeText"></span>
+      </div>
+      <div class="controls-toggle">
+        <button type="button" id="toggleControlsBtn" class="toggle-btn">설정 접기</button>
+      </div>
     </div>
 
     <div id="root"></div>
@@ -209,10 +246,29 @@
   </div>
 
   <script>
+    // ------ 학년도 기준 기본 시작 연월 계산 (3월~다음해 2월) ------
+    function getDefaultStartYmByAcademicYear(){
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = today.getMonth() + 1;
+      const yearStart = (m >= 3 ? y : y - 1); // 3~12월: 그 해 3월 / 1~2월: 전년도 3월
+      return `${yearStart}-03`;
+    }
+    function getDefaultMonths(){ return 12; }
+
     // ---------------- 기본 파라미터 처리 ----------------
     const q = new URLSearchParams(location.search);
-    const START_YM = q.get('start') || '2025-03';
-    const COUNT    = Math.max(1, Math.min(36, parseInt(q.get('months')||'12',10)));
+    const DEFAULT_START_YM = getDefaultStartYmByAcademicYear();
+    const DEFAULT_MONTHS = getDefaultMonths();
+
+    const START_YM = q.get('start') || DEFAULT_START_YM;
+    const COUNT    = Math.max(
+      1,
+      Math.min(
+        36,
+        parseInt(q.get('months') || String(DEFAULT_MONTHS), 10)
+      )
+    );
     const CUSTOM_TITLE = q.get('title') || '';
 
     let NOTES = {}; // JSON에서 불러와서 채움
@@ -225,6 +281,8 @@
     const startYmInput = document.getElementById("startYmInput");
     const countInput = document.getElementById("countInput");
     const applyBtn = document.getElementById("applyBtn");
+    const controlsEl = document.getElementById("controls");
+    const toggleBtn = document.getElementById("toggleControlsBtn");
 
     // URL 파라미터 기준으로 입력칸 초기값 세팅
     startYmInput.value = START_YM;
@@ -241,7 +299,7 @@
     const escapeHtml = s => s || '';
     const wdK = w => ['일','월','화','수','목','금','토'][w];
 
-    // ---------------- 상단 범위 텍스트 ----------------
+    // ---------------- 상단 범위 텍스트 (지금은 CSS로 숨김) ----------------
     function setRangeText(){
       const start = ymToDate(START_YM);
       const end = addMonths(start, COUNT-1);
@@ -394,6 +452,19 @@
       if (CUSTOM_TITLE) params.set("title", CUSTOM_TITLE);
 
       location.search = params.toString();
+    });
+
+    // ---------------- 설정 접기/펼치기 ----------------
+    let controlsVisible = true;
+    toggleBtn.addEventListener("click", () => {
+      controlsVisible = !controlsVisible;
+      if (controlsVisible){
+        controlsEl.style.display = "flex";
+        toggleBtn.textContent = "설정 접기";
+      }else{
+        controlsEl.style.display = "none";
+        toggleBtn.textContent = "설정 열기";
+      }
     });
 
     // ---------------- 초기 실행 ----------------
