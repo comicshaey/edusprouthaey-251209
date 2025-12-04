@@ -3,229 +3,160 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>공무원 국내 여비 계산기 (시범)</title>
-  <link rel="icon" href="/static/favicon.ico" />
-  <link rel="stylesheet" href="/static/style.css" />
+  <title>관내여비 검증용 계산기 (시범) - travel-expenses-verifier</title>
 
-  <style>
-    .section {
-      border:1px solid #e5e5e5;
-      border-radius:12px;
-      padding:16px 18px;
-      margin:18px 0;
-      background:#fff;
-    }
-    .field-row {
-      display:flex;
-      flex-wrap:wrap;
-      gap:12px;
-      margin-bottom:10px;
-      align-items:center;
-    }
-    .field-row label{
-      min-width:150px;
-      font-size:0.95rem;
-    }
-    .field-row input,
-    .field-row select{
-      flex:1 1 160px;
-      max-width:260px;
-    }
-    .field-help{
-      font-size:0.8rem;
-      color:#666;
-      margin:4px 0 0 0;
-    }
-    .result-box{
-      border:1px dashed #ccc;
-      border-radius:12px;
-      padding:12px 14px;
-      background:#fafafa;
-      margin-top:10px;
-      font-size:0.95rem;
-    }
-    .result-line{
-      display:flex;
-      justify-content:space-between;
-      margin:2px 0;
-    }
-    .result-label{
-      font-weight:600;
-    }
-    .result-value{
-      text-align:right;
-      min-width:120px;
-    }
-    .muted{
-      font-size:0.85rem;
-      color:#666;
-    }
-    .btn-primary{
-      display:inline-block;
-      padding:10px 18px;
-      border-radius:12px;
-      border:none;
-      cursor:pointer;
-      font-size:0.95rem;
-    }
-  </style>
+  <!-- 공통 스타일 -->
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
+  <!-- 상단 메인으로 돌아가기 -->
+  <div class="home-link-wrap">
+    <a href="/" class="btn-home">← 메인으로 돌아가기</a>
+  </div>
+
+  <!-- 헤더 -->
   <header class="site-header">
     <div class="shell">
-      <h1>공무원 국내 여비 계산기 (시범)</h1>
+      <h1>관내여비 검증용 계산기 (시범)</h1>
       <p class="sub">
-        · 인사혁신처 &lt;공무원 여비 100문 100답&gt; 기준을 참고한 근무지 내·외 국내출장 여비 산출 보조 도구입니다.<br/>
-        · 실제 지급 전에는 해당 연도 여비규정·기관 내부지침과 맞는지 반드시 재검토해야 합니다.
+        · 4시간 기준 관내여비(반일 10,000원 / 종일 20,000원)를 전제로, 나이스·지출결의 집계가 규정과 맞는지 점검하는 도구입니다.<br />
+        · 2025년 5월 문막초 관내여비 지출결의서(합계 450,000원)를 참고하여 설계했습니다.
       </p>
-      <p><a class="btn" href="/">메인으로 돌아가기</a></p>
     </div>
   </header>
 
-  <main class="container">
-    <!-- 탭 선택 -->
+  <main>
+    <!-- 1. 월간 집계 단위 검증 -->
     <section class="section">
-      <h2>1. 계산 구분 선택</h2>
-      <div class="field-row">
-        <label>계산 유형</label>
-        <div>
-          <label><input type="radio" name="calcType" value="inner" checked> 근무지 내 국내출장</label>
-          &nbsp;&nbsp;
-          <label><input type="radio" name="calcType" value="outer"> 근무지 외 국내출장</label>
+      <h2 class="local-h2">1. 월간 관내여비 집계 검증</h2>
+
+      <div class="card">
+        <p class="local-small muted">
+          · 나이스 원자료에서 <strong>반일 건수 / 종일 건수</strong>만 세어서 입력하면, 규정상 예상액과 지출결의 총액이 맞는지 확인합니다.<br />
+          · 단가는 기본값(반일 10,000원 / 종일 20,000원)으로 두었고, 필요시 수정 가능합니다.
+        </p>
+
+        <div class="grid two" style="margin-top:12px;">
+          <div class="field">
+            <label for="monthLabel">검증 대상 연월(자유 입력)</label><br />
+            <input type="text" id="monthLabel" placeholder="예: 2025년 5월 관내여비" />
+          </div>
+
+          <div class="field">
+            <label for="decidedTotal">지출결의 총액 (원)</label><br />
+            <input type="number" id="decidedTotal" class="numeric" placeholder="예: 450000" />
+          </div>
         </div>
+
+        <hr />
+
+        <div class="grid two">
+          <div class="field">
+            <label for="halfCount">반일(4시간 미만) 출장 건수</label><br />
+            <input type="number" id="halfCount" class="numeric" min="0" step="1" placeholder="예: 15" />
+          </div>
+          <div class="field">
+            <label for="fullCount">종일(4시간 이상) 출장 건수</label><br />
+            <input type="number" id="fullCount" class="numeric" min="0" step="1" placeholder="예: 8" />
+          </div>
+        </div>
+
+        <div class="grid two" style="margin-top:8px;">
+          <div class="field">
+            <label for="unitHalf">반일 단가 (원)</label><br />
+            <input type="number" id="unitHalf" class="numeric" value="10000" />
+          </div>
+          <div class="field">
+            <label for="unitFull">종일 단가 (원)</label><br />
+            <input type="number" id="unitFull" class="numeric" value="20000" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:14px;">
+          <button type="button" class="btn primary" id="btnVerifyMonthly">
+            월간 집계 검증
+          </button>
+          <button type="button" class="btn ghost" id="btnResetMonthly">
+            값 초기화
+          </button>
+        </div>
+
+        <div id="monthlyResult" class="card" style="margin-top:14px; display:none;"></div>
       </div>
-      <p class="muted">
-        · v1은 국내출장(근무지 내/외)만 반영했습니다. 부임여비·이전비·국외출장은 차기 버전에서 확장 가능합니다.
-      </p>
     </section>
 
-    <!-- 근무지 내 -->
-    <section class="section" id="section-inner">
-      <h2>2. 근무지 내 국내출장</h2>
-
-      <div class="field-row">
-        <label for="innerDistance">왕복 거리 (km)</label>
-        <input type="number" id="innerDistance" min="0" step="0.1" placeholder="예: 5" />
-      </div>
-
-      <div class="field-row">
-        <label for="innerHours">출장 소요시간 (시간)</label>
-        <input type="number" id="innerHours" min="0" step="0.1" placeholder="예: 3.5" />
-      </div>
-
-      <div class="field-row">
-        <label>공용차량/임차차량 사용</label>
-        <div>
-          <label><input type="radio" name="innerCar" value="no" checked> 사용 안 함</label>
-          &nbsp;&nbsp;
-          <label><input type="radio" name="innerCar" value="yes"> 사용함 (공용·업무용택시·렌트 등)</label>
-        </div>
-      </div>
-
-      <div class="field-row">
-        <label for="innerActualShort">근거리 실비 (선택)</label>
-        <input type="number" id="innerActualShort" min="0" step="100" placeholder="왕복 2km 이내일 때 실제 운임+식비 합계" />
-      </div>
-      <p class="field-help">
-        · 왕복 2km 초과: 4시간 미만 1만원, 4시간 이상 2만원 정액 (공용차량 사용 시 1만원 감액).<br/>
-        · 왕복 2km 이내: 정액 대신 실비 지급 (4시간 미만 최대 1만원, 4시간 이상 최대 2만원).
-      </p>
-
-      <button type="button" class="btn btn-primary" id="btnInner">근무지 내 여비 계산</button>
-
-      <div class="result-box" id="innerResult" style="display:none;"></div>
-    </section>
-
-    <!-- 근무지 외 -->
-    <section class="section" id="section-outer" style="display:none;">
-      <h2>3. 근무지 외 국내출장 (제2호 기준)</h2>
-
-      <div class="field-row">
-        <label for="outerDays">출장일수 (일)</label>
-        <input type="number" id="outerDays" min="1" step="1" placeholder="예: 2" />
-      </div>
-
-      <div class="field-row">
-        <label for="outerNights">숙박일수 (박)</label>
-        <input type="number" id="outerNights" min="0" step="1" placeholder="예: 1" />
-      </div>
-
-      <div class="field-row">
-        <label for="outerRegion">숙박 지역 구분</label>
-        <select id="outerRegion">
-          <option value="seoul">서울특별시</option>
-          <option value="metro">광역시</option>
-          <option value="other" selected>기타·세종·제주</option>
-        </select>
-      </div>
-
-      <div class="field-row">
-        <label for="outerLodgingSpent">실제 숙박비 합계 (원)</label>
-        <input type="number" id="outerLodgingSpent" min="0" step="100" placeholder="영수증 합계 금액" />
-      </div>
-
-      <div class="field-row">
-        <label>숙박 상한 30% 가산</label>
-        <div>
-          <label><input type="radio" name="outerLodgingExtra" value="no" checked> 미적용</label>
-          &nbsp;&nbsp;
-          <label><input type="radio" name="outerLodgingExtra" value="yes"> 적용 (성수기·불가피 사유)</label>
-        </div>
-      </div>
-
-      <div class="field-row">
-        <label for="outerCarDays">공용/임차 차량 사용일수</label>
-        <input type="number" id="outerCarDays" min="0" step="1" placeholder="일비 1/2 적용 일수" />
-      </div>
-
-      <div class="field-row">
-        <label>항공마일리지 사용</label>
-        <div>
-          <label><input type="radio" name="outerMileage" value="no" checked> 사용 안 함</label>
-          &nbsp;&nbsp;
-          <label><input type="radio" name="outerMileage" value="yes"> 사용함 (보너스권/좌석승급)</label>
-        </div>
-      </div>
-
-      <div class="field-row">
-        <label for="outerMealsProvided">무료 제공 식사 횟수</label>
-        <input type="number" id="outerMealsProvided" min="0" step="1" placeholder="예: 2" />
-      </div>
-
-      <div class="field-row">
-        <label for="outerLongStayRate">장기체재 일비 감액율</label>
-        <select id="outerLongStayRate">
-          <option value="1.0" selected>미적용 (100%)</option>
-          <option value="0.9">90%</option>
-          <option value="0.8">80%</option>
-          <option value="0.7">70%</option>
-        </select>
-      </div>
-
-      <div class="field-row">
-        <label for="outerFare">운임 실비 (원)</label>
-        <input type="number" id="outerFare" min="0" step="100" placeholder="철도·항공·버스 등 실제 운임 합계" />
-      </div>
-
-      <p class="field-help">
-        · 일비·식비·숙박비는 여비규정 정액·상한 기준으로 계산하고, 운임은 입력한 실비를 그대로 합산합니다.<br/>
-        · 항공마일리지 사용 시 일비 50% 추가는 “절약된 항공운임의 1/2 한도” 규정이 있어, 실제 지급 전에는 따로 점검 필요합니다.
-      </p>
-
-      <button type="button" class="btn btn-primary" id="btnOuter">근무지 외 여비 계산</button>
-
-      <div class="result-box" id="outerResult" style="display:none;"></div>
-    </section>
-
+    <!-- 2. 개별 지급내역 행 단위 검증 -->
     <section class="section">
-      <h2>4. 유의사항</h2>
-      <p class="muted">
-        · 이 계산기는 여비규정 구조를 파악하고 1차 산출값을 확인하는 용도입니다. 기관별 세부지침, 학기·연도별 여비단가 변경 등은 반영되지 않을 수 있습니다.<br/>
-        · 실제 지급 시에는 반드시 최신 여비규정, 소속 교육청 예규, 학교 내부 결재라인 의견을 다시 확인해야 합니다.
+      <h2 class="local-h2">2. 개별 지급내역 행 단위 검증 (수동 입력)</h2>
+
+      <p class="local-small muted">
+        · 나이스 원자료 엑셀에서 이름 / 관내-반일·종일 여부 / 금회지급액을 보고, 아래 표에 그대로 입력하면 됩니다.<br />
+        · 각 행에 대해 “규정상 기대액”과 실제 입력액을 비교해 불일치 여부를 표시합니다.
       </p>
+
+      <!-- 단가 공유 설정 -->
+      <div class="card">
+        <div class="grid two">
+          <div class="field">
+            <label for="detailUnitHalf">반일 단가 (원)</label><br />
+            <input type="number" id="detailUnitHalf" class="numeric" value="10000" />
+          </div>
+          <div class="field">
+            <label for="detailUnitFull">종일 단가 (원)</label><br />
+            <input type="number" id="detailUnitFull" class="numeric" value="20000" />
+          </div>
+        </div>
+        <p class="local-small muted">
+          · 위 값은 행 단위 검증에서 공통으로 사용됩니다. (관내 왕복 2km 이상 기준, 4시간 미만/이상 구분)
+        </p>
+      </div>
+
+      <!-- 표 + 행 추가 -->
+      <div class="table-wrap">
+        <table class="sheetlike simple-table" id="detailTable">
+          <thead>
+            <tr>
+              <th style="width:36px;">No</th>
+              <th style="min-width:110px;">성명</th>
+              <th style="min-width:120px;">구분</th>
+              <th style="min-width:110px;">지급액(원)</th>
+              <th style="min-width:130px;">규정상 기대액(원)</th>
+              <th style="min-width:120px;">결과</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 자바스크립트로 행 추가 -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="row gap" style="margin-top:8px;">
+        <button type="button" class="btn" id="btnAddRow">행 추가</button>
+        <button type="button" class="btn ghost" id="btnClearRows">전체 행 삭제</button>
+        <button type="button" class="btn primary" id="btnVerifyDetails">행 단위 검증</button>
+      </div>
+
+      <div id="detailSummary" class="card" style="margin-top:14px; display:none;"></div>
+    </section>
+
+    <!-- 3. 참고 메모 -->
+    <section class="section">
+      <h2 class="local-h2">3. 참고 및 유의사항</h2>
+      <ul>
+        <li>이 도구는 <strong>관내여비(왕복 2km 이상) 정액 기준</strong>만 검증합니다. 왕복 2km 이내 근거리 실비, 운전원 특례, 하루 2회 이상 출장 시 1일 상한 등 세부 규정은 별도 검토가 필요합니다.</li>
+        <li>실제 지급 전에는 반드시 해당 연도 여비 규정, 교육청·학교 내부 지침, 지출결의 내용과 함께 재검토해야 합니다.</li>
+        <li>나이스 엑셀 원자료 구조에 맞춘 자동 파싱·검증 기능은 추후 동적 페이지/파이썬 서버를 별도로 구축한 후 확장하는 방향으로 생각하면 됩니다.</li>
+      </ul>
     </section>
   </main>
 
+
+  <footer style="text-align:center; margin-top:15px; color:#444;">
+    제작자: 씩씩하고 귀여운 고주무관 · Contact: edusproutcomics@naver.com · 개인적인 토이 프로젝트입니다.
+  </footer>
+
+
   <script src="script.js"></script>
+    <script src="/static/global-loader.js?v=1"></script>
 </body>
 </html>
