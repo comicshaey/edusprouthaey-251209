@@ -377,3 +377,11 @@ body h2 + hr {
   margin: 0 auto;
   padding: 0 16px;
 }
+
+/* 모든 셀렉트 박스가 그리드 밖으로 넘치지 않도록 강제 */
+.field select {
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
